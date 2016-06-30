@@ -1,4 +1,4 @@
-module Parser (toInts, opFor) where
+module Parser (toInts) where
 import qualified Data.Array.Unboxed as Array
 import           Data.Bits       (shift)
 import qualified Data.ByteString as B

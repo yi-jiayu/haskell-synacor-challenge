@@ -4,7 +4,6 @@ import qualified Data.Array.Unboxed as Array
 import           Data.Bits
 import qualified Data.BitVector     as BV
 import           Data.Char
-import           Parser
 import           Prelude            hiding (lookup)
 import           Types
 

@@ -54,12 +54,6 @@ value vm val
                             32775 -> view (registers . r7) vm
                             _ -> error "ERRIMPOSSIBLE"
 
-assertIsRegister :: Int -> Int
-assertIsRegister val
-  | val < 32768 = error "ERRNOTREG"
-  | val > 32777 = error "INVALIDVAL"
-  | otherwise = val
-
 literal :: Int -> Int
 literal = id
 
@@ -70,7 +64,7 @@ setPC :: Vm -> Int -> Vm
 setPC vm new = set (registers . progCtr) new vm
 
 ihalt :: Vm -> Instruction -> IO Vm
-ihalt vm _ = return( setPC vm (-1))
+ihalt vm _ = return (setPC vm (-1))
 
 iset :: Vm -> Instruction -> IO Vm
 iset vm instr = let a' = view a instr
@@ -96,23 +90,20 @@ ipop vm instr = if null (view stack vm) then error "ERRPOPEMPTYSTACK"
                            vm'3 = incPC vm'' 2         -- increment pc
                        in return vm'3
 
+icomp :: (Int -> Int -> Bool) -> Vm -> Instruction -> IO Vm
+icomp func vm instr = let addr = view a instr
+                          b' = value vm (view b instr)
+                          c' = value vm (view c instr)
+                          result = if func b' c' then 1 else 0 -- compare
+                          vm' = store vm addr result           -- store result
+                          vm'' = incPC vm' 4                   -- increment pc
+                      in return vm''
+
 ieq :: Vm -> Instruction -> IO Vm
-ieq vm instr = let addr = view a instr
-                   b' = value vm (view b instr)
-                   c' = value vm (view c instr)
-                   result = if b' == c' then 1 else 0
-                   vm' = store vm addr result -- store result of eq
-                   vm'' = incPC vm' 4         -- increment pc
-               in return vm''
+ieq = icomp (==)
 
 igt :: Vm -> Instruction -> IO Vm
-igt vm instr = let addr = view a instr
-                   b' = value vm (view b instr)
-                   c' = value vm (view c instr)
-                   result = if b' > c' then 1 else 0
-                   vm' = store vm addr result -- store result of eq
-                   vm'' = incPC vm' 4         -- increment pc
-                   in return vm''
+igt = icomp (>)
 
 ijmp :: Vm -> Instruction -> IO Vm
 ijmp vm instr = let addr = value vm (view a instr)
@@ -133,25 +124,21 @@ ijf vm instr = let cond = value vm (view a instr)
                   then return (setPC vm addr) -- jump
                   else return (incPC vm 3)    -- no jump
 
+iarith :: (Int -> Int -> Int) -> Vm -> Instruction -> IO Vm
+iarith func vm instr = let addr = view a instr
+                           b' = value vm (view b instr)
+                           c' = value vm (view c instr)
+                           result = func b' c'          -- apply func
+                           result' = mod result 32768   -- modulo
+                           vm' = store vm addr result'  -- update memory
+                           vm'' = incPC vm' 4           -- increment pc
+                       in return vm''
+
 iadd :: Vm -> Instruction -> IO Vm
-iadd vm instr = let addr = view a instr
-                    b' = value vm (view b instr)
-                    c' = value vm (view c instr)
-                    result = b' + c'             -- add
-                    result' = mod result 32768   -- modulo
-                    vm' = store vm addr result'  -- update memory
-                    vm'' = incPC vm' 4           -- increment pc
-                in return vm''
+iadd = iarith (+)
 
 imult :: Vm -> Instruction -> IO Vm
-imult vm instr = let addr = view a instr
-                     b' = value vm (view b instr)
-                     c' = value vm (view c instr)
-                     result = b' * c' -- multiply
-                     result' = mod result 32768   -- modulo
-                     vm' = store vm addr result'  -- update memory
-                     vm'' = incPC vm' 4           -- increment pc
-                 in return vm''
+imult = iarith (*)
 
 imod :: Vm -> Instruction -> IO Vm
 imod vm instr = let addr = view a instr

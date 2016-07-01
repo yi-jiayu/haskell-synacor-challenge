@@ -1,0 +1,52 @@
+proc next action {
+expect "What do you do?"
+send "$action\n"
+}
+
+spawn out/main.exe challenge.bin
+
+next "take tablet"
+next doorway
+next north
+next north
+next bridge
+next continue
+next down
+next east
+next "take empty lantern"
+next west
+next west
+next passage
+next ladder
+next west
+next south
+next north
+next "take can"
+next "use can"
+next "use lantern"
+next west
+next ladder
+next darkness
+next continue
+next west
+next west
+next west
+next west
+next north
+next "take red coin"
+next north
+next east
+next "take concave coin"
+next down
+next "take corroded coin"
+next up
+next west
+next west
+next "take blue coin"
+next up
+next "take shiny coin"
+next down
+next east
+
+
+interact

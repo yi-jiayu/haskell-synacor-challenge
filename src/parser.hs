@@ -1,4 +1,4 @@
-module Parser (toInts) where
+module Parser (toIntsr) where
 import qualified Data.Array.Unboxed as Array
 import           Data.Bits       (shift)
 import qualified Data.ByteString as B
@@ -44,6 +44,17 @@ int low' high' = let low = fromIntegral low' :: Int
 
 toInts :: B.ByteString -> [Int]
 toInts bin = fst (toInts' ([], bin))
+
+-- mmap :: Array.UArray Int Int -> B.ByteString -> Array.UArray Int Int
+-- mmap mem bin =
+
+toIntsr :: B.ByteString -> [Int]
+toIntsr bin = fst (B.foldr' toIntsr' ([], True) bin)
+
+toIntsr' :: Word8 -> ([Int], Bool) -> ([Int], Bool)
+toIntsr' next (accum, highBit) = if highBit
+                                 then (fromIntegral next `shift` 8:accum, False)
+                                 else ((fromIntegral next + head accum):tail accum, True)
 
 toInts' :: ([Int], B.ByteString) -> ([Int], B.ByteString)
 toInts' x@(accum, bin) = if B.null bin then x

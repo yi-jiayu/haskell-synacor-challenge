@@ -8,7 +8,7 @@ import           Parser
 import           Types
 
 load :: Vm -> B.ByteString -> IO Vm
-load vm bin = let mem = Array.listArray (0, 32767) (toInts bin ++ repeat 0)
+load vm bin = let mem = Array.listArray (0, 32767) (toIntsr bin ++ repeat 0)
                   vm' = set memory mem vm
               in do putStr "loading program..."
                     putChar $ seq (view memory vm' Array.! 0) ' '-- put this here to force the array to be evaluated

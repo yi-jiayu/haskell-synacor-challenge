@@ -47,6 +47,12 @@ next up
 next "take shiny coin"
 next down
 next east
+next "use blue coin"
+next "use red coin"
+next "use shiny coin"
+next "use concave coin"
+next "use corroded coin"
+next north
 
 
 interact

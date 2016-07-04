@@ -7,7 +7,8 @@ import qualified Data.Map.Strict as Map
 
 data Vm = Vm { _registers :: Regs
              , _memory    :: Array.UArray Int Int
-             , _stack     :: [Int] }
+             , _stack     :: [Int]
+             , _inpBuf     :: String }
 
 data Regs = Regs { _r0      :: Int
                  , _r1      :: Int
@@ -33,7 +34,7 @@ initRegs :: Regs
 initRegs = Regs 0 0 0 0 0 0 0 0 0
 
 initVm :: Vm
-initVm = Vm initRegs initMem []
+initVm = Vm initRegs initMem [] ""
 
 makeLenses ''Vm
 makeLenses ''Regs

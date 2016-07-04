@@ -4,6 +4,7 @@ import qualified Data.Array.Unboxed as Array
 import           Data.Bits
 import qualified Data.BitVector     as BV
 import           Data.Char
+import           Data.Maybe
 import           Prelude            hiding (lookup)
 import           Types
 
@@ -213,11 +214,43 @@ iout vm instr = do putChar $ chr (value vm (view a instr)) -- output char
                    return vm'
 
 iin :: Vm -> Instruction -> IO Vm
-iin vm instr = do let addr = view a instr             -- get dest addr
-                  char <- getChar                    -- read a char
-                  let vm' = store vm addr (ord char) -- store ascii code of char to mem
-                  let vm'' = incPC vm' 2              -- increment pc
-                  return vm''
+iin vm instr =  if null (view inpBuf vm)
+                then do line <- getLine
+                        let cmd = if null (words line) then " " else head (words line)
+                        vm' <- case cmd of "regs" -> cmdShowRegs vm
+                                           "set" -> cmdSetReg vm line
+                                           _ -> return (set inpBuf (line ++ "\n") vm)
+                        iin vm' instr
+                else do let addr = view a instr
+                        let char = head (view inpBuf vm)
+                        let vm' = over inpBuf tail vm
+                        let vm'' = store vm' addr (ord char) -- store ascii code of char to mem
+                        let vm'2 = incPC vm'' 2              -- increment pc
+                        return vm'2
+
+cmdShowRegs :: Vm -> IO Vm
+cmdShowRegs vm = do print (view registers vm)
+                    return (set inpBuf "look\n" vm)
+
+cmdSetReg :: Vm -> String -> IO Vm
+cmdSetReg vm cmd = let (_:reg:newVal':_) = words cmd
+                       newVal = read newVal' :: Int
+                       vm' = case reg of "r0" -> Just (set (registers . r0) newVal vm)
+                                         "r1" -> Just (set (registers . r1) newVal vm)
+                                         "r2" -> Just (set (registers . r2) newVal vm)
+                                         "r3" -> Just (set (registers . r3) newVal vm)
+                                         "r4" -> Just (set (registers . r4) newVal vm)
+                                         "r5" -> Just (set (registers . r5) newVal vm)
+                                         "r6" -> Just (set (registers . r6) newVal vm)
+                                         "r7" -> Just (set (registers . r7) newVal vm)
+                                         _ -> Nothing
+                   in maybe
+                      (do putStrLn "Invalid register specified!"
+                          line <- getLine
+                          cmdSetReg vm line)
+                      (return . set inpBuf "look\n")
+                      vm'
+
 
 inoop :: Vm -> Instruction -> IO Vm
 inoop vm _ = return (incPC vm 1) -- increment pc

@@ -45,14 +45,15 @@ step vm = let pc = view (registers . progCtr) vm
                                           NOOP -> inoop
               in op' vm instr
 
-dump :: vm -> IO ()
-dump vm = do print (view registers vm)
-             writeFile "memdump" (show (Array.elems mem))
-             putStrLn "Memory dumped to ./memdump"
+dumpAndExit :: Vm -> ThreadId -> IO ()
+dumpAndExit vm tid = do print (view registers vm)
+                        writeFile "memdump" (show (Array.elems (view memory vm)))
+                        putStrLn "Memory dumped to ./memdump"
+                        killThread tid
 
 run :: Vm -> IO Vm
 run vm = do tid <- myThreadId
-            installHandler keyboardSignal (Catch (dump vm)) Nothing
+            installHandler keyboardSignal (Catch (dumpAndExit vm tid)) Nothing
             let pc = view (registers . progCtr) vm
                 in if pc < 0 || pc > 32775
                   then do print $ view registers vm

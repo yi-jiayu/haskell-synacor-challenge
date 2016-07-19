@@ -6,6 +6,9 @@ import qualified Data.ByteString as B
 import           Instructions
 import           Parser
 import           Types
+import System.Exit
+import System.Posix.Signals
+import Control.Concurrent
 
 load :: Vm -> B.ByteString -> IO Vm
 load vm bin = let mem = Array.listArray (0, 32767) (toIntsr bin ++ repeat 0)
@@ -42,13 +45,20 @@ step vm = let pc = view (registers . progCtr) vm
                                           NOOP -> inoop
               in op' vm instr
 
+dump :: vm -> IO ()
+dump vm = do print (view registers vm)
+             writeFile "memdump" (show (Array.elems mem))
+             putStrLn "Memory dumped to ./memdump"
+
 run :: Vm -> IO Vm
-run vm = let pc = view (registers . progCtr) vm
-         in if pc < 0 || pc > 32775
-           then do print $ view registers vm
-                   return vm
-           else do vm' <- step vm
-                   run vm'
+run vm = do tid <- myThreadId
+            installHandler keyboardSignal (Catch (dump vm)) Nothing
+            let pc = view (registers . progCtr) vm
+                in if pc < 0 || pc > 32775
+                  then do print $ view registers vm
+                          return vm
+                  else do vm' <- step vm
+                          run vm'
 
 main = do args <- getArgs
           if null args

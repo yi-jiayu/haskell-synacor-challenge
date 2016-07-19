@@ -219,6 +219,7 @@ iin vm instr =  if null (view inpBuf vm)
                         let cmd = if null (words line) then " " else head (words line)
                         vm' <- case cmd of "regs" -> cmdShowRegs vm
                                            "set" -> cmdSetReg vm line
+                                           "memdump" -> cmdMemDump vm
                                            _ -> return (set inpBuf (line ++ "\n") vm)
                         iin vm' instr
                 else do let addr = view a instr
@@ -251,6 +252,11 @@ cmdSetReg vm cmd = let (_:reg:newVal':_) = words cmd
                       (return . set inpBuf "look\n")
                       vm'
 
+cmdMemDump :: Vm -> IO Vm
+cmdMemDump vm = let mem = view memory vm
+                in do writeFile "memdump" (show (Array.elems mem))
+                      putStrLn "Memory dumped to ./memdump"
+                      return (set inpBuf "look\n" vm)
 
 inoop :: Vm -> Instruction -> IO Vm
 inoop vm _ = return (incPC vm 1) -- increment pc

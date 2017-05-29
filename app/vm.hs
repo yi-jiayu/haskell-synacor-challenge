@@ -7,7 +7,6 @@ import           Instructions
 import           Parser
 import           Types
 import System.Exit
-import System.Posix.Signals
 import Control.Concurrent
 
 load :: Vm -> B.ByteString -> IO Vm
@@ -53,7 +52,6 @@ dumpAndExit vm tid = do print (view registers vm)
 
 run :: Vm -> IO Vm
 run vm = do tid <- myThreadId
-            installHandler keyboardSignal (Catch (dumpAndExit vm tid)) Nothing
             let pc = view (registers . progCtr) vm
                 in if pc < 0 || pc > 32775
                   then do print $ view registers vm

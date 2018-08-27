@@ -1,9 +1,11 @@
+#!/usr/bin/expect -f
+
 proc next action {
 expect "What do you do?"
 send "$action\n"
 }
 
-spawn out/main.exe challenge.bin
+spawn stack exec synacor-challenge-exe challenge.bin
 
 next "take tablet"
 next doorway
